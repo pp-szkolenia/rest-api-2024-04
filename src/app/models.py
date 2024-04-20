@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from enum import Enum
 
 
 class TaskBody(BaseModel):
@@ -11,3 +12,8 @@ class UserBody(BaseModel):
     username: str
     password: str
     is_admin: bool = False
+
+
+class SortOrders(Enum):
+    ASC = "asc"
+    DESC = "desc"

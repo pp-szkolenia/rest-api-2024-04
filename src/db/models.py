@@ -14,3 +14,12 @@ class UserTable(Base):
 
     def __repr__(self):
         return f"User(id={self.id_number}"
+
+
+class TaskTable(Base):
+    __tablename__ = "tasks"
+
+    id_number = Column("id", Integer, primary_key=True)
+    description = Column("description", VARCHAR(30), nullable=False)
+    priority = Column("priority", Integer)
+    is_complete = Column("is_complete", Boolean, nullable=False, server_default=false())

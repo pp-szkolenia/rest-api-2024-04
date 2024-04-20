@@ -1,10 +1,9 @@
 from fastapi import APIRouter, HTTPException, status, Response, Depends
 from fastapi.responses import JSONResponse
-import random
+from sqlalchemy import func, asc, desc
 from sqlalchemy.orm import Session
 
-from app.utils import get_item_by_id, get_item_index_by_id
-from app.models import UserBody
+from app.models import UserBody, SortOrders
 from db.orm import get_session
 from db.models import UserTable
 
@@ -13,9 +12,36 @@ router = APIRouter()
 
 
 @router.get("/users/", tags=["users"])
-def get_users(session: Session = Depends(get_session)):
-    users_data = session.query(UserTable).all()
-    # return JSONResponse(status_code=status.HTTP_200_OK, content={"result": users_data})
+def get_users(session: Session = Depends(get_session), is_admin: bool | None = None,
+              password_limit: int = None, sort_username: SortOrders = None):
+
+    users_data = session.query(UserTable)
+
+    if is_admin is not None:
+        users_data = users_data.filter_by(is_admin=is_admin)
+
+    if password_limit is not None:
+        users_data = users_data.filter(func.length(UserTable.password) <= password_limit)
+
+    if sort_username is not None:
+        if sort_username == SortOrders.ASC:
+            sort_func = asc
+        elif sort_username == SortOrders.DESC:
+            sort_func = desc
+        else:
+            raise Exception("Invalid sort order")
+
+        users_data = users_data.order_by(sort_func(UserTable.username))
+
+    users_data = users_data.all()
+
+    users_data = [
+        {"id": user.id_number,
+         "username": user.username,
+         "password": user.password,
+         "is_admin": user.is_admin}
+        for user in users_data]
+
     return {"result": users_data}
 
 
