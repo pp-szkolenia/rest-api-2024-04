@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException, status, Response
+from fastapi import APIRouter, HTTPException, status, Response, Depends
 from fastapi.responses import JSONResponse
 
 
-from app.models import TaskBody
+from app.models import TaskBody, TokenData
+from app import oauth2
 from db.utils import connect_to_db
 
 
@@ -40,7 +41,8 @@ def get_task_by_id(id_: int):
 
 
 @router.post("/tasks/", status_code=status.HTTP_201_CREATED, tags=["tasks"])
-def create_task(body: TaskBody):
+def create_task(body: TaskBody,  show_task: bool = True,
+                user_data: TokenData = Depends(oauth2.get_current_user)):
     conn, cursor = connect_to_db()
 
     insert_query_template = f"""INSERT INTO tasks (description, priority, is_complete)
@@ -54,11 +56,14 @@ def create_task(body: TaskBody):
     conn.close()
     cursor.close()
 
-    return {"message": "New task added", "details": new_task}
+    if show_task:
+        return {"message": f"New task added by user {user_data.user_id}", "details": new_task}
+    else:
+        return {"message": f"New task added by user {user_data.user_id}"}
 
 
 @router.delete("/tasks/{id_}", tags=["tasks"])
-def delete_task_by_id(id_: int):
+def delete_task_by_id(id_: int, _: TokenData = Depends(oauth2.get_current_user)):
     conn, cursor = connect_to_db()
 
     delete_query = f"DELETE FROM tasks WHERE id=%s RETURNING *;"
@@ -77,7 +82,7 @@ def delete_task_by_id(id_: int):
 
 
 @router.put("/tasks/{id_}", tags=["tasks"])
-def update_task_by_id(id_: int, body: TaskBody):
+def update_task_by_id(id_: int, body: TaskBody, user_data: TokenData = Depends(oauth2.get_current_user)):
     conn, cursor = connect_to_db()
 
     update_query = (f"""UPDATE tasks SET description=%s, priority=%s, is_complete=%s
@@ -95,5 +100,6 @@ def update_task_by_id(id_: int, body: TaskBody):
         message = {"error": f"Task with id {id_} does not exist"}
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=message)
 
-    message = {"message": f"Task with id {id_} updated", "new_value": updated_task}
-    return JSONResponse(status_code=status.HTTP_200_OK, content=message)
+    # message = {"message": f"Task with id {id_} updated", "new_value": updated_task}
+    return {"message": f"Task with id {id_} updated by user {user_data.user_id}",
+            "new_value": updated_task}

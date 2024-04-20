@@ -1,15 +1,11 @@
-def get_item_by_id(items_list, id_):
-    for item in items_list:
-        if item["id"] == id_:
-            result = item
-            break
-    else:
-        result = None
+from passlib.context import CryptContext
 
-    return result
+# from app.models import UserBody
 
 
-def get_item_index_by_id(items_list, id_):
-    for i, item in enumerate(items_list):
-        if item["id"] == id_:
-            return i
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def verify(login_password: str, true_password: str):
+    # return pwd_context.verify(raw_password, hashed_password)
+    return login_password == true_password
