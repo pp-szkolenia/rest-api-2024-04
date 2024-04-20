@@ -16,10 +16,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 25
 def verify_access_token(token: str, credentials_exception: HTTPException):
     try:
         payload = jwt.decode(token, SECRET_KEY, ALGORITHM)
-        print("!!!", payload)
         id_ = payload.get("user_id")
         is_admin = payload.get("is_admin")
-        print("!!!", is_admin)
         if id_ is None:
             raise credentials_exception
 
@@ -37,7 +35,6 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
-    print("???", data)
     to_encode = data.copy()
 
     if expires_delta:
