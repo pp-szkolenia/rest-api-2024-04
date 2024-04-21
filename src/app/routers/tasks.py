@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Response, Depends
+from fastapi import APIRouter, HTTPException, status, Response, Depends, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy import between, asc, desc
 
@@ -13,8 +13,10 @@ router = APIRouter()
 
 
 @router.get("/tasks/", tags=["tasks"])
-def get_tasks(session: Session = Depends(get_session), is_complete: bool | None = None,
+def get_tasks(request: Request, session: Session = Depends(get_session), is_complete: bool | None = None,
               min_priority: int = 1, max_priority: int = 5, sort_description: SortOrders = None):
+    print("!!!", request.headers, "\n--------")
+
     tasks_data = session.query(TaskTable)
 
     if is_complete is not None:

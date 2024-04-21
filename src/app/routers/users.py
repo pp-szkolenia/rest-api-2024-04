@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Response, Depends
+from fastapi import APIRouter, HTTPException, status, Response, Depends, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy import func, asc, desc
 from sqlalchemy.orm import Session
@@ -12,8 +12,10 @@ router = APIRouter()
 
 
 @router.get("/users/", tags=["users"])
-def get_users(session: Session = Depends(get_session), is_admin: bool | None = None,
+def get_users(request: Request, session: Session = Depends(get_session), is_admin: bool | None = None,
               password_limit: int = None, sort_username: SortOrders = None):
+
+    print("!!!", request.headers, "\n--------")
 
     users_data = session.query(UserTable)
 
